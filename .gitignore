@@ -44,7 +44,7 @@ coverage.xml
 .python-version
 
 # VirtualEnv
-.env/
+*/.env
 
 # Developers
 *.sw*
@@ -65,3 +65,6 @@ API
 Training
 Blog
 About
+
+# migrations
+*/*/migrations/
