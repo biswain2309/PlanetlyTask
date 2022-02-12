@@ -9,9 +9,6 @@ class User(models.Model):
 
     def get_user(self):
         return self.name + ' is added.'
-    
-    # def __str__(self):
-    #     return self.id
 
 
 class UsageTypes(models.Model):

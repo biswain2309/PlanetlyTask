@@ -1,36 +1,45 @@
 import json
 from rest_framework import status
-from django.test import TestCase, Client
+from django.contrib.auth.models import User
+from rest_framework.test import APITestCase
 from django.urls import reverse
-from rest_framework.test import APIClient
-from ..models import User, UsageTypes, Usage
+from rest_framework.authtoken.models import Token
+from ..models import User as UserModel, UsageTypes, Usage
 from ..serializers import UserSerializer, UsageSerializer
 
 
-# Initialize the API Client app
-client = Client()
 
-class GetAllUsersTest(TestCase):
+class GetAllUsersTest(APITestCase):
     '''Test module for GET all Users API'''
 
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
     def setUp(self):
-        User.objects.create(id=3, name='Casper')
-        User.objects.create(id=4, name='Muffin')
-    
+        self.user = User.objects.create_user(username='admin', password='password123')
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+        UserModel.objects.create(id=3, name='Casper')
+        UserModel.objects.create(id=4, name='Muffin')
+
     def test_get_all_users(self):
-        # get API response
-        response = client.get(reverse('get_post_users'))
-        # get data from db
-        users = User.objects.all()
+        response = self.client.get(reverse('get_post_users'))
+        users = UserModel.objects.all()
         serializer = UserSerializer(users, many=True)
-        self.assertEqual(response.data, serializer.data)
+        self.assertEqual(response.data['results'], serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-class CreateNewUserTest(TestCase):
+class CreateNewUserTest(APITestCase):
     '''Test module for POST new User API'''
 
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
     def setUp(self):
+        self.user = User.objects.create_user(username='admin', password='password123')
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
         self.valid_payload = {
             'id': 5,
             'name': 'Musketeer'
@@ -40,28 +49,35 @@ class CreateNewUserTest(TestCase):
             'id': '',
             'name': 'Musketeer'
         }
-    
+
     def test_create_valid_user(self):
-        response = client.post(reverse('get_post_users'),
+        response = self.client.post(reverse('get_post_users'),
                                 data=json.dumps(self.valid_payload),
                                 content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
     
     def test_create_invalid_user(self):
-        response = client.post(reverse('get_post_users'),
+        response = self.client.post(reverse('get_post_users'),
                                 data=json.dumps(self.invalid_payload),
                                 content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class GetAllUsersUsageTest(TestCase):
+class GetAllUsersUsageTest(APITestCase):
     '''Test module for GET all Users Usage API'''
 
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
     def setUp(self):
-        self.client = APIClient()
-        user = User.objects.create(id=9, name='Evin')
+        self.user = User.objects.create_user(username='admin', password='password123')
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+
+        test_user = UserModel.objects.create(id=9, name='Evin')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
-        Usage.objects.create(id=51, user_id=user, usage_type_id=usagetype, amount=22.2)
+        Usage.objects.create(id=51, user_id=test_user, usage_type_id=usagetype, amount=22.2)
+
     
     def test_get_all_users_usage(self):
         # get API response
@@ -69,20 +85,24 @@ class GetAllUsersUsageTest(TestCase):
         # get data from db
         users = Usage.objects.all()
         serializer = UsageSerializer(users, many=True)
-        # self.assertEqual([obj['user_id'] for obj in response.data], [users.id])
-        self.assertEqual(response.data, serializer.data)
+        self.assertEqual(response.data['results'], serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-class CreateNewUserUsageTest(TestCase):
+class CreateNewUserUsageTest(APITestCase):
     '''Test module for POST new User Usage API'''
 
-    def setUp(self):
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
-        self.client = APIClient()
-        user = User.objects.create(id=10, name='Eff')
-        user = User.objects.create(id=11, name='Jasmin')
-        usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
+    def setUp(self):
+        self.user = User.objects.create_user(username='admin', password='password123')
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+
+        UserModel.objects.create(id=10, name='Eff')
+        UserModel.objects.create(id=11, name='Jasmin')
+        UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
 
         self.valid_payload = {
             'id': 5,
@@ -112,12 +132,18 @@ class CreateNewUserUsageTest(TestCase):
 
 
 
-class GetSingleUserUsage(TestCase):
+class GetSingleUserUsage(APITestCase):
     '''Test module to GET Single Users Usage API'''
 
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
     def setUp(self):
-        self.client = APIClient()
-        user = User.objects.create(id=6, name='Julius')
+        self.user = User.objects.create_user(username='admin', password='password123')
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+
+        user = UserModel.objects.create(id=6, name='Julius')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
         self.usage = Usage.objects.create(id=51, user_id=user, usage_type_id=usagetype, amount=12.2)
 
@@ -133,14 +159,20 @@ class GetSingleUserUsage(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-class UpdateSingleUserTest(TestCase):
+class UpdateSingleUserTest(APITestCase):
     '''Test module for updating a single user usage model'''
 
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
     def setUp(self):
-        self.client = APIClient()
-        user = User.objects.create(id=7, name='Caesar')
+        self.user = User.objects.create_user(username='admin', password='password123')
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+    
+        test_user = UserModel.objects.create(id=7, name='Caesar')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
-        self.usage = Usage.objects.create(id=52, user_id=user, usage_type_id=usagetype, amount=13.2)
+        self.usage = Usage.objects.create(id=52, user_id=test_user, usage_type_id=usagetype, amount=13.2)
     
         self.valid_payload = {
             'id': 52,
@@ -170,14 +202,20 @@ class UpdateSingleUserTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class DeleteSingleUserTest(TestCase):
+class DeleteSingleUserTest(APITestCase):
     '''Test module to delete an existing user usage record'''
 
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
     def setUp(self):
-        self.client = APIClient()
-        user = User.objects.create(id=7, name='Caesar')
+        self.user = User.objects.create_user(username='admin', password='password123')
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+
+        test_user = UserModel.objects.create(id=7, name='Caesar')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
-        self.usage = Usage.objects.create(id=53, user_id=user, usage_type_id=usagetype, amount=13.2)
+        self.usage = Usage.objects.create(id=53, user_id=test_user, usage_type_id=usagetype, amount=13.2)
     
     def test_valid_delete_user_usage(self):
         response = self.client.delete(reverse('get_delete_update_user_usage', kwargs={'pk': self.usage.id}))
@@ -186,3 +224,30 @@ class DeleteSingleUserTest(TestCase):
     def test_invalid_delete_user_usage(self):
         response = self.client.delete(reverse('get_delete_update_user_usage', kwargs={'pk': 45}))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class GetEachUsersUsageTest(APITestCase):
+    '''Test module for GET all Users API'''
+
+    def api_authentication(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='admin', password='password123')
+        self.token = Token.objects.create(user=self.user)
+        self.api_authentication()
+    
+        test_user = UserModel.objects.create(id=71, name='Muftak')
+        usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
+        self.usage = Usage.objects.create(id=55, user_id=test_user, usage_type_id=usagetype, amount=13.2)
+
+        test_user = UserModel.objects.create(id=72, name='Lione')
+        usagetype = UsageTypes.objects.create(id=100, name='electricity', unit='kwh', factor=1.5)
+        self.usage = Usage.objects.create(id=56, user_id=test_user, usage_type_id=usagetype, amount=3.2)
+    
+    def test_get_each_users_usage(self):
+        usage_obj = Usage.objects.get(user_id=self.usage.user_id)
+        serializer = UsageSerializer(usage_obj)
+        response = self.client.get(reverse('get_each_user_usage', kwargs={'userid': self.usage.user_id_id}))
+        self.assertEqual(json.loads(json.dumps(response.data))['results'][0], serializer.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

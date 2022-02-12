@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'app',
     'rest_framework',
     'rest_framework.authtoken',
-    'django_filters'
+    'django_filters',
+    'drf_yasg'
 ]
 
 REST_FRAMEWORK = {
@@ -105,7 +106,8 @@ DATABASES = {
         'NAME': 'carbon_usage',
         'USER': env('DATABASE_USER'),
         'PASSWORD': env('DATABASE_PASSWORD'),
-        'HOST': '127.0.0.1',
+        # 'HOST': 'db',
+        'HOST': 'localhost',
         'PORT': '5432'
 
     }
