@@ -18,8 +18,6 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-# schema_view = get_schema_view(title='Users Usage API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('auth.urls')),

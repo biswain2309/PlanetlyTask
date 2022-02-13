@@ -26,7 +26,6 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-qj4m5n3v)x%_hx76w*41t0ufek3o_-k*qgr8%acq!ehk4f!wl^'
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -104,21 +103,13 @@ WSGI_APPLICATION = 'carbonusage.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'carbon_usage',
         'USER': env('DATABASE_USER'),
         'PASSWORD': env('DATABASE_PASSWORD'),
-        # 'HOST': 'db',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432'
 
     }

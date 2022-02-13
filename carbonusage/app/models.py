@@ -29,9 +29,6 @@ class Usage(models.Model):
 
     def get_usage(self):
         return self.user_id.name + ' is using ' + self.amount + 'amount.'
-    
-    # def __str__(self):
-    #     return self.id
 
 
 

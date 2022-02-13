@@ -1,10 +1,9 @@
 from django.urls import path
-from auth.views import ObtainTokenPairView, RegisterView
-from rest_framework_simplejwt.views import TokenRefreshView
+from auth.views import RegisterView
+from rest_framework.authtoken.views import obtain_auth_token
 
 
 urlpatterns = [
-    path('login/', ObtainTokenPairView.as_view(), name='token_obtain_pair'),
-    path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', RegisterView.as_view(), name='auth_register'),
+    path('login/', obtain_auth_token, name='auth_login'),
 ]

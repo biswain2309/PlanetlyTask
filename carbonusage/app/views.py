@@ -13,13 +13,13 @@ from .filters import UsageFilter
 
 
 paginator = PageNumberPagination()
+'''We can customize it through frontend request'''
 paginator.page_size = 2
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_users(request):
-    # get all users
     if request.method == 'GET':
         users = User.objects.all()
         users_page = paginator.paginate_queryset(users, request)
@@ -30,7 +30,6 @@ def get_users(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def post_users(request):
-    # Insert a record for a User
     if request.method == 'POST':
         data = {
             'id': request.data.get('id'),
