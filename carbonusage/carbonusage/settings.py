@@ -51,6 +51,17 @@ INSTALLED_APPS = [
     'drf_yasg'
 ]
 
+SWAGGER_SETTINGS = {
+      'SECURITY_DEFINITIONS': {
+         'Token': {
+               'type': 'apiKey',
+               'name': 'Authorization',
+               'in': 'header',
+         },
+      },
+      'LOGIN_URL': '/admin'
+   }
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',

@@ -9,21 +9,28 @@ from ..serializers import UserSerializer, UsageSerializer
 
 
 
+def api_authentication(self):
+    self.user = User.objects.create_user(username='test', password='testpwd123')
+    self.token = Token.objects.create(user=self.user)
+    self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
+
+def api_authentication_staff(self):
+    self.user = User.objects.create_user(username='admin', password='password123', is_staff=True)
+    self.token = Token.objects.create(user=self.user)
+    self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
+
+
 class GetAllUsersTest(APITestCase):
     '''Test module for GET all Users API'''
 
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', password='password123')
-        self.token = Token.objects.create(user=self.user)
-        self.api_authentication()
+        api_authentication(self)
         UserModel.objects.create(id=3, name='Casper')
         UserModel.objects.create(id=4, name='Muffin')
 
     def test_get_all_users(self):
-        response = self.client.get(reverse('get_post_users'))
+        response = self.client.get(reverse('get_users'))
         users = UserModel.objects.all()
         serializer = UserSerializer(users, many=True)
         self.assertEqual(response.data['results'], serializer.data)
@@ -33,56 +40,41 @@ class GetAllUsersTest(APITestCase):
 class CreateNewUserTest(APITestCase):
     '''Test module for POST new User API'''
 
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', password='password123')
-        self.token = Token.objects.create(user=self.user)
-        self.api_authentication()
+        api_authentication_staff(self)
         self.valid_payload = {
             'id': 5,
             'name': 'Musketeer'
         }
-
         self.invalid_payload = {
             'id': '',
             'name': 'Musketeer'
         }
 
     def test_create_valid_user(self):
-        response = self.client.post(reverse('get_post_users'),
+        response = self.client.post(reverse('post_users'),
                                 data=json.dumps(self.valid_payload),
                                 content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
     
     def test_create_invalid_user(self):
-        response = self.client.post(reverse('get_post_users'),
+        response = self.client.post(reverse('post_users'),
                                 data=json.dumps(self.invalid_payload),
                                 content_type='application/json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class GetAllUsersUsageTest(APITestCase):
-    '''Test module for GET all Users Usage API'''
-
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', password='password123')
-        self.token = Token.objects.create(user=self.user)
-        self.api_authentication()
-
+        api_authentication(self)
         test_user = UserModel.objects.create(id=9, name='Evin')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
         Usage.objects.create(id=51, user_id=test_user, usage_type_id=usagetype, amount=22.2)
 
     
     def test_get_all_users_usage(self):
-        # get API response
         response = self.client.get(reverse('per_user_usage'))
-        # get data from db
         users = Usage.objects.all()
         serializer = UsageSerializer(users, many=True)
         self.assertEqual(response.data['results'], serializer.data)
@@ -90,15 +82,8 @@ class GetAllUsersUsageTest(APITestCase):
 
 
 class CreateNewUserUsageTest(APITestCase):
-    '''Test module for POST new User Usage API'''
-
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', password='password123')
-        self.token = Token.objects.create(user=self.user)
-        self.api_authentication()
+        api_authentication(self)
 
         UserModel.objects.create(id=10, name='Eff')
         UserModel.objects.create(id=11, name='Jasmin')
@@ -133,15 +118,8 @@ class CreateNewUserUsageTest(APITestCase):
 
 
 class GetSingleUserUsage(APITestCase):
-    '''Test module to GET Single Users Usage API'''
-
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', password='password123')
-        self.token = Token.objects.create(user=self.user)
-        self.api_authentication()
+        api_authentication_staff(self)
 
         user = UserModel.objects.create(id=6, name='Julius')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
@@ -160,15 +138,8 @@ class GetSingleUserUsage(APITestCase):
 
 
 class UpdateSingleUserTest(APITestCase):
-    '''Test module for updating a single user usage model'''
-
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', password='password123')
-        self.token = Token.objects.create(user=self.user)
-        self.api_authentication()
+        api_authentication_staff(self)
     
         test_user = UserModel.objects.create(id=7, name='Caesar')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
@@ -203,15 +174,8 @@ class UpdateSingleUserTest(APITestCase):
 
 
 class DeleteSingleUserTest(APITestCase):
-    '''Test module to delete an existing user usage record'''
-
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', password='password123')
-        self.token = Token.objects.create(user=self.user)
-        self.api_authentication()
+        api_authentication_staff(self)
 
         test_user = UserModel.objects.create(id=7, name='Caesar')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)
@@ -227,15 +191,8 @@ class DeleteSingleUserTest(APITestCase):
 
 
 class GetEachUsersUsageTest(APITestCase):
-    '''Test module for GET all Users API'''
-
-    def api_authentication(self):
-        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', password='password123')
-        self.token = Token.objects.create(user=self.user)
-        self.api_authentication()
+        api_authentication(self)
     
         test_user = UserModel.objects.create(id=71, name='Muftak')
         usagetype = UsageTypes.objects.create(id=102, name='heating', unit='kwh', factor=3.892)

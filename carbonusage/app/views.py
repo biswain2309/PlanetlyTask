@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import generics
 from rest_framework.filters import OrderingFilter
@@ -16,16 +16,20 @@ paginator = PageNumberPagination()
 paginator.page_size = 2
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_post_users(request):
+def get_users(request):
     # get all users
     if request.method == 'GET':
         users = User.objects.all()
-        print('users--->', users)
         users_page = paginator.paginate_queryset(users, request)
         serializer = UserSerializer(users_page, many=True)
         return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def post_users(request):
     # Insert a record for a User
     if request.method == 'POST':
         data = {
@@ -41,7 +45,7 @@ def get_post_users(request):
 
 
 @api_view(['GET', 'DELETE', 'PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsAdminUser])
 def get_delete_update_user(request, pk):
     try:
         user = User.objects.get(id=pk)
@@ -77,7 +81,7 @@ class UsageList(generics.ListCreateAPIView):
 
 
 class ModifyUsageList(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = Usage.objects.all()
     serializer_class = UsageSerializer
 
