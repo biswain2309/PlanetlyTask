@@ -1,10 +1,8 @@
 # PlanetlyTask
 
-PlanetlyTask is a RESTful APIs built upon Django Rest Framework using Django ORM and PostgreSQL database. It exposes CRUD functionality to a database that stores carbon usage data for customers.
+## Walkthrough
 
-## Demo and Walkthrough
-
-The service is built inside a Docker container. The api's handle CRUD operations on User and Usage model. It also supports pagination, sorting and filtering based on time range.
+PlanetlyTask is a RESTful APIs built upon Django Rest Framework using Django ORM and PostgreSql. The service is built inside a Docker container and can leverage `docker-compose`. It exposes CRUD functionality to a database that stores carbon usage trend for customers. It also supports pagination, sorting and filtering based on time range. It took me around 6 hours spanned across 3 days to complete the challenge.
 
 ## Local Setup
 
@@ -29,6 +27,11 @@ The service is built inside a Docker container. The api's handle CRUD operations
 * API also provides carbon usage details for selected user.
 * Unit Test Cases are available for major end points. You can run them through `python3 manage.py test`
 * API documentation is available on `localhost:8000` and can be accessed through Swagger.
+
+## Challenges
+* Writing test cases for modules that is behind the token authentication.
+* Handling filter and sorting in API  from django_filters.
+
 
 ## Area of improvements
 
